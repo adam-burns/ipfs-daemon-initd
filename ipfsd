@@ -66,11 +66,10 @@ do_stop()
 
 case "$1" in
 start)  
-        log_daemon_msg "Starting ${DESC}: $DAEMON\n"
+        log_daemon_msg "Starting ${DESC}: $DAEMON_NAME"
         do_start
         case "$?" in
-                0)
-                   log_end_msg 0 ;;
+                0) log_end_msg 0 ;;
                 1) log_progress_msg "already started"
                    log_end_msg 0 ;;
                 *) log_end_msg 1 ;;
