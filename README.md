@@ -1,7 +1,7 @@
 A Simple init.d Script and Watchdog for Daemonizing IPFS
 ========================================================
 
-A simple SysV init script and watchdog for daemonizing IPFS. After you install ipfs (which I recommend doing using the install script which comes with IPFS), then you should simply run the install.sh script from this repo.
+A simple SysV init script for daemonizing IPFS. After you install ipfs run the install.sh script from this repo.
 
 This will do a couple things.
 - It will create a daemon user "ipfsd" and ipfsd service on the system, and add it to your boot sequence. 
@@ -9,7 +9,7 @@ This will do a couple things.
 
 Future Work
 -----------
-I'd love to eventually add a systemd service version of this as well. Also, I'm not sure about how this will work on all systems. I tested it on Fedora 23. The installer has a bit of system-specific instructions down at the bottom, which may need to be extended to properly set up rc.d files on other systems.
+The installer has a bit of system-specific instructions down at the bottom, which may need to be extended to properly set up rc.d files on other systems.
 
 License
 -------
