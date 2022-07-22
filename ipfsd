@@ -15,88 +15,80 @@
 # Description:       Starts or stops the IPFS Daemon with watchdogging
 ### END INIT INFO
 
-dir="/ipfsd"
-bin_path=`sed -n -e 's/^.*IPFS_BIN_PATH=//p' /etc/ipfsd.conf`
-cmd="$bin_path daemon"
-user="ipfsd"
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+DESC="Interplanetary File System (IPFS)"
+NAME=ipfsd
+DAEMON=ipfs
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/"$NAME"
+DAEMON_UID=ipfsd
 
-name=`basename $0`
-pid_file="/var/run/$name.pid"
-tmp_file="/tmp/$name.pid"
-log_file="$dir/$name.log"
+test -f $DAEMON || exit 0
 
-get_pid() {
-    cat "$pid_file"
+. /lib/lsb/init-functions
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+do_start()
+{
+        # Return
+        #   0 if daemon has been started
+        #   1 if daemon was already running
+        #   other if daemon could not be started or a failure occured
+        start-stop-daemon --start --quiet --pidfile $PIDFILE --chuid $DAEMON_UID --exec $DAEMON $OPTIONS
 }
 
-is_running() {
-    [ -f "$pid_file" ] && ps `get_pid` > /dev/null 2>&1
+do_stop()
+{
+        # Return
+        #   0 if daemon has been stopped
+        #   1 if daemon was already stopped
+        #   other if daemon could not be stopped or a failure occurred
+        start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $DAEMON
 }
+
+
+
 
 case "$1" in
-    start)
-    if is_running; then
-        echo "Already started"
-    else
-        echo "Starting $name"
-        cd "$dir"
-	    sudo -u "$user" /bin/sh -c 'echo $$>'"$tmp_file"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
-  	sleep 5
-	mv $tmp_file $pid_file
-        if ! is_running; then
-            echo "Unable to start $name"
-            exit 1
-        fi
-    fi
-    ;;
-    stop)
-    if is_running; then
-        echo -n "Stopping $name.."
-        kill -9 `get_pid`
-        for i in {1..10}
-        do
-            if ! is_running; then
-                break
-            fi
-
-            echo -n "."
-            sleep 1
-        done
-        echo
-
-        if is_running; then
-            echo "Not stopped; may still be shutting down or shutdown may have failed"
-            exit 1
-        else
-            echo "Stopped"
-            if [ -f "$pid_file" ]; then
-                rm "$pid_file"
-            fi
-        fi
-    else
-        echo "Not running"
-    fi
-    ;;
-    restart)
-    $0 stop
-    if is_running; then
-        echo "Unable to stop, will not attempt to start"
-        exit 1
-    fi
-    $0 start
-    ;;
-    status)
-    if is_running; then
-        echo "Running"
-    else
-        echo "Stopped"
-        exit 1
-    fi
-    ;;
-    *)
-    echo "Usage: $0 {start|stop|restart|status}"
-    exit 1
-    ;;
+start)  
+	log_daemon_msg "Starting $DESC" "$DAEMON"
+	do_start
+	case "$?" in
+                0) sendsigs_omit
+                   log_end_msg 0 ;;
+                1) log_progress_msg "already started"
+                   log_end_msg 0 ;;
+                *) log_end_msg 1 ;;
+        esac
+        ;;
+stop)   
+	log_daemon_msg "Stopping $DESC" "$DAEMON"
+	do_stop
+	        case "$?" in
+                0) log_end_msg 0 ;;
+                1) log_progress_msg "already stopped"
+                   log_end_msg 0 ;;
+                *) log_end_msg 1 ;;
+        esac
+        ;;
+restart)
+	log_daemon_msg "Restarting periodic command scheduler" "cron" 
+        $0 stop
+        $0 start
+        ;;
+reload|force-reload)
+	log_daemon_msg "Reloading configuration files for periodic command scheduler" "cron"
+        # cron reloads automatically
+        $0 stop
+        $0 start
+        ;;
+status)
+        status_of_proc -p $PIDFILE $DAEMON $NAME && exit 0 || exit $?
+        ;;
+*)      log_action_msg "Usage: /etc/init.d/cron {start|stop|status|restart|reload|force-reload}"
+        exit 2
+        ;;
 esac
-
 exit 0
+
