@@ -26,16 +26,6 @@ SCRIPTNAME=/etc/init.d/"$NAME"
 DAEMON_UID=ipfsd
 DAEMON_OPTIONS="--mount"
 
-dir="/ipfsd"
-bin_path=`sed -n -e 's/^.*IPFS_BIN_PATH=//p' /etc/ipfsd.conf`
-cmd="$bin_path daemon"
-user="ipfsd"
-
-name=`basename $0`
-pid_file="/var/run/$name.pid"
-tmp_file="/tmp/$name.pid"
-log_file="$dir/$name.log"
-
 which $DAEMON || exit 0
 
 . /lib/lsb/init-functions
@@ -48,9 +38,7 @@ do_start()
         #   0 if daemon has been started
         #   1 if daemon was already running
         #   other if daemon could not be started or a failure occured
-        start-stop-daemon --start --pidfile $PIDFILE --chuid $DAEMON_UID --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
-        #start-stop-daemon --start --pidfile $PIDFILE --chuid $DAEMON_UID --background --output $LOGFILE --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
-        #sudo -u "$user" /bin/sh -c 'echo $$>'"$PIDFILE"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
+	start-stop-daemon --start --make-pidfile --pidfile $PIDFILE --chuid $DAEMON_UID --background --output $LOGFILE --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
 }
 
 do_stop()
@@ -60,10 +48,6 @@ do_stop()
         #   1 if daemon was already stopped
         #   other if daemon could not be stopped or a failure occurred
         start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --exec $DAEMON
-}
-
-
-
 
 case "$1" in
 start)  
@@ -77,8 +61,7 @@ start)
         esac
         ;;
 stop)   
-        log_daemon_msg "Stopping ${DESC}:  $DAEMON "
-        pkill $DAEMON_NAME
+        log_daemon_msg "Stopping ${DESC}:  $DAEMON_NAME"
         do_stop
         case "$?" in
                 0) log_end_msg 0 ;;
@@ -88,12 +71,12 @@ stop)
         esac
         ;;
 restart)
-        log_daemon_msg "Restarting periodic command scheduler" "cron" 
+        log_daemon_msg "Restarting ${DESC}: $DAEMON_NAME" 
         $0 stop
         $0 start
         ;;
 reload|force-reload)
-        log_daemon_msg "Reloading configuration files for periodic command scheduler" "cron"
+        log_daemon_msg "Reloading ${DESC}: $DAEMON_NAME"
         # cron reloads automatically
         $0 stop
         $0 start
@@ -101,7 +84,7 @@ reload|force-reload)
 status)
         status_of_proc -p $PIDFILE $DAEMON_NAME $NAME && exit 0 || exit $?
         ;;
-*)      log_action_msg "Usage: /etc/init.d/cron {start|stop|status|restart|reload|force-reload}"
+*)      log_action_msg "Usage: /etc/init.d/$NAME {start|stop|status|restart|reload|force-reload}"
         exit 2
         ;;
 esac
