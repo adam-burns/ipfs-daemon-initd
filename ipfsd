@@ -21,10 +21,10 @@ NAME=ipfsd
 DAEMON=/usr/local/bin/ipfs
 DAEMON_NAME=ipfs
 PIDFILE=/var/run/$NAME.pid
+LOGFILE=/var/log/${NAME}.log
 SCRIPTNAME=/etc/init.d/"$NAME"
 DAEMON_UID=ipfsd
 DAEMON_OPTIONS="--mount"
-DAEMON_LOGFILE=/var/log/${NAME}.log
 
 dir="/ipfsd"
 bin_path=`sed -n -e 's/^.*IPFS_BIN_PATH=//p' /etc/ipfsd.conf`
@@ -36,7 +36,7 @@ pid_file="/var/run/$name.pid"
 tmp_file="/tmp/$name.pid"
 log_file="$dir/$name.log"
 
-test -f $DAEMON || exit 0
+which $DAEMON || exit 0
 
 . /lib/lsb/init-functions
 
@@ -48,7 +48,8 @@ do_start()
         #   0 if daemon has been started
         #   1 if daemon was already running
         #   other if daemon could not be started or a failure occured
-        start-stop-daemon --start --quiet --pidfile $PIDFILE --chuid $DAEMON_UID --background --output $DAEMON_LOGFILE --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
+        start-stop-daemon --start --pidfile $PIDFILE --chuid $DAEMON_UID --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
+        start-stop-daemon --start --pidfile $PIDFILE --chuid $DAEMON_UID --background --output $LOGFILE --exec ${DAEMON} daemon -- $DAEMON_OPTIONS
         #sudo -u "$user" /bin/sh -c 'echo $$>'"$PIDFILE"' && exec '"$cmd"' 2>&1 >>'"$log_file" &
 }
 
