@@ -24,7 +24,7 @@ PIDFILE=/var/run/$NAME.pid
 LOGFILE=/var/log/${NAME}.log
 SCRIPTNAME=/etc/init.d/"$NAME"
 DAEMON_UID=ipfsd
-DAEMON_OPTIONS="--mount"
+DAEMON_OPTIONS=""
 
 which $DAEMON || exit 0
 
