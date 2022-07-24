@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This file is part of the ipfs-daemon-initd project, 
 # and is licensed under the MIT license
 # Copyright 2015 Jeff Cochran
