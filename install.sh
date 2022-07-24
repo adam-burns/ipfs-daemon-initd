@@ -54,8 +54,8 @@ echo 'Adding init script...'
 cp ./ipfsd /etc/init.d
 chmod 755 /etc/init.d/ipfsd
 
-echo 'Adding cronjob...'
-cp ./ipfsd-cron /etc/cron.d
+# echo 'Adding cronjob...'
+# cp ./ipfsd-cron /etc/cron.d
 
 which update-rc.d > /dev/null 2>&1
 if [ 0 -eq $? ]; then
