@@ -3,6 +3,8 @@
 # and is licensed under the MIT license
 # Copyright 2015 Jeff Cochran
 
+USER_NAME="ipfsd"
+USER_HOME="/ipfsd"
 
 if [ "$EUID" -ne 0 ]; then
 	echo 'This script must be run as root!'
@@ -39,19 +41,13 @@ fi
 
 echo "Found ipfs at $IPFS_BIN_PATH"
 
-echo 'Creating daemon...'
+echo 'Creating daemon user ...'
 
-useradd -r -m -d /ipfsd ipfsd
-
-echo '[ipfs-daemon]' > /etc/ipfsd.conf
-echo 'IPFS_BIN_PATH='"$IPFS_BIN_PATH" >> /etc/ipfsd.conf
+useradd -r -m -d $USER_HOME $USER_NAME
 
 echo 'Initializing ipfs...'
 chmod o+rx $IPFS_BIN_PATH
 sudo -u ipfsd $IPFS_BIN_PATH init
-
-ln -s /ipfsd/.ipfs/logs /var/log/ipfs
-ln -s /ipfsd/ipfsd.log /var/log/ipfsd.log
 
 echo 'Adding init script...'
 
