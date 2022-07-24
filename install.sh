@@ -44,11 +44,11 @@ echo "Found ipfs at $IPFS_BIN_PATH"
 
 echo 'Creating daemon user ...'
 
-useradd -r -m -d $USER_HOME $USER_NAME
+[[ ! -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
 
 echo 'Initializing ipfs...'
 chmod o+rx $IPFS_BIN_PATH
-sudo -u $USER_NAME $IPFS_BIN_PATH init
+[[ ! -d "${USER_HOME}/.ipfs" ]] && sudo -u $USER_NAME $IPFS_BIN_PATH init
 
 echo 'Adding init script...'
 
