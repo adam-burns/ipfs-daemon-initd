@@ -44,7 +44,7 @@ echo "Found ipfs at $IPFS_BIN_PATH"
 
 echo 'Creating daemon user ...'
 
-[[ ! -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
+[[ -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
 
 echo 'Initializing ipfs...'
 chmod o+rx $IPFS_BIN_PATH
@@ -59,8 +59,8 @@ chmod 755 /etc/init.d/ipfsd
 [[ ! -d "${IPFS_MOUNTPATH}/ipfs" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipfs"
 [[ ! -d "${IPFS_MOUNTPATH}/ipns" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipns"
 
-[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipfs") != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipfs"
-[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipns") != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipns"
+[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipfs) != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipfs"
+[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipns) != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipns"
 
 # echo 'Adding cronjob...'
 # cp ./ipfsd-cron /etc/cron.d
