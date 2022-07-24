@@ -5,6 +5,7 @@
 
 USER_NAME="ipfsd"
 USER_HOME="/ipfsd"
+IPFS_MOUNTPATH="/"
 
 if [ "$EUID" -ne 0 ]; then
 	echo 'This script must be run as root!'
@@ -47,12 +48,19 @@ useradd -r -m -d $USER_HOME $USER_NAME
 
 echo 'Initializing ipfs...'
 chmod o+rx $IPFS_BIN_PATH
-sudo -u ipfsd $IPFS_BIN_PATH init
+sudo -u $USER_NAME $IPFS_BIN_PATH init
 
 echo 'Adding init script...'
 
 cp ./ipfsd /etc/init.d
 chmod 755 /etc/init.d/ipfsd
+
+# Preparing mountpoints (TODO put in init script if --mount option is set)
+[[ ! -d "${IPFS_MOUNTPATH}/ipfs" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipfs"
+[[ ! -d "${IPFS_MOUNTPATH}/ipns" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipns"
+
+[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipfs") != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipfs"
+[[ "$(stat -c '%U' ${IPFS_MOUNTPATH}/ipns") != ${USER_NAME}" ]] && chown ${USER_NAME} "${IPFS_MOUNTPATH}/ipns"
 
 # echo 'Adding cronjob...'
 # cp ./ipfsd-cron /etc/cron.d
