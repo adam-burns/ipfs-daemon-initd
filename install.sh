@@ -15,6 +15,7 @@ fi
 install_service() {
 	# $1 - name of executable daemon
 	# $2 - name of init script
+	# $3 - name of dot directory (.ipfs or .ipfs-cluster)
 	echo 'Finding $1 ...'
 	
 	command -v /usr/local/bin/$1  > /dev/null 2>&1
@@ -51,7 +52,7 @@ install_service() {
 	
 	echo 'Initializing $1 ...'
 	chmod o+rx $SERVICE_BIN_PATH
-	[[ ! -d "${USER_HOME}/.ipfs" ]] && sudo -u $USER_NAME $SERVICE_BIN_PATH init
+	[[ ! -d "${USER_HOME}/$3" ]] && sudo -u $USER_NAME $SERVICE_BIN_PATH init
 	
 	echo 'Adding init script...'
 	
@@ -76,9 +77,9 @@ install_service() {
 
 }
 
-install_service ipfs ipfsd
+install_service ipfs ipfsd .ipfs
 
-install_service ipfs-cluster-service ipfs-clusterd
+install_service ipfs-cluster-service ipfs-clusterd .ipfs-cluster
 
 # Preparing mountpoints (TODO put in init script if --mount option is set)
 [[ ! -d "${IPFS_MOUNTPATH}/ipfs" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipfs"
