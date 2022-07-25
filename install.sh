@@ -12,48 +12,73 @@ if [ "$EUID" -ne 0 ]; then
 	exit 1
 fi
 
-echo 'Finding ipfs...'
-
-command -v /usr/local/bin/ipfs > /dev/null 2>&1
-if [ 0 -eq $? ]; then
-	IPFS_BIN_PATH=/usr/local/bin/ipfs
-fi
-
-if [ -z $IPFS_BIN_PATH ]; then
-	command -v /usr/bin/ipfs > /dev/null 2>&1
+install_service() {
+	# $1 - name of executable daemon
+	# $2 - name of init script
+	echo 'Finding $1 ...'
+	
+	command -v /usr/local/bin/$1  > /dev/null 2>&1
 	if [ 0 -eq $? ]; then
-		IPFS_BIN_PATH=/usr/bin/ipfs
+		SERVICE_BIN_PATH=/usr/local/bin/$1 
 	fi
-fi
-
-if [ -z $IPFS_BIN_PATH ]; then
-	which ipfs > /dev/null 2>&1
-	if [ 0 -eq $? ]; then
-		IPFS_BIN_PATH=`which ipfs`
+	
+	if [ -z $SERVICE_BIN_PATH ]; then
+		command -v /usr/bin/$1  > /dev/null 2>&1
+		if [ 0 -eq $? ]; then
+			SERVICE_BIN_PATH=/usr/bin/$1 
+		fi
 	fi
-fi
+	
+	if [ -z $SERVICE_BIN_PATH ]; then
+		which $1  > /dev/null 2>&1
+		if [ 0 -eq $? ]; then
+			SERVICE_BIN_PATH=`which $1 `
+		fi
+	fi
+	
+	if [ -z $SERVICE_BIN_PATH ]; then
+		echo 'Unable to find IPFS binary!'
+		echo 'Make sure it, or a link to it is on the path'
+		echo ' or in a normal install location'
+		exit 1
+	fi
+	
+	echo "Found $1  at $SERVICE_BIN_PATH"
+	
+	echo 'Creating daemon user ...'
+	
+	[[ -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
+	
+	echo 'Initializing $1 ...'
+	chmod o+rx $SERVICE_BIN_PATH
+	[[ ! -d "${USER_HOME}/.ipfs" ]] && sudo -u $USER_NAME $SERVICE_BIN_PATH init
+	
+	echo 'Adding init script...'
+	
+	cp ./$2 /etc/init.d
+	chmod 755 /etc/init.d/$2
 
-if [ -z $IPFS_BIN_PATH ]; then
-	echo 'Unable to find IPFS binary!'
-	echo 'Make sure it, or a link to it is on the path'
-	echo ' or in a normal install location'
-	exit 1
-fi
+        which update-rc.d > /dev/null 2>&1 
+        if [ 0 -eq $? ]; then 
+                update-rc.d $2 defaults
+                echo 'Success'
+                exit 0
+        fi
+        
+        command -v /usr/sbin/chkconfig > /dev/null 2>&1 
+        if [ 0 -eq $? ]; then 
+                /usr/sbin/chkconfig --add $2
+                echo 'Success'
+                exit 0
+        fi
 
-echo "Found ipfs at $IPFS_BIN_PATH"
+	echo 'Unable to automatically generate rc.d files. Refer to your OS manual to enable the ipfsd service at boot time. (sorry)'
 
-echo 'Creating daemon user ...'
+}
 
-[[ -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
+install_service ipfs ipfsd
 
-echo 'Initializing ipfs...'
-chmod o+rx $IPFS_BIN_PATH
-[[ ! -d "${USER_HOME}/.ipfs" ]] && sudo -u $USER_NAME $IPFS_BIN_PATH init
-
-echo 'Adding init script...'
-
-cp ./ipfsd /etc/init.d
-chmod 755 /etc/init.d/ipfsd
+install_service ipfs-cluster-service ipfs-clusterd
 
 # Preparing mountpoints (TODO put in init script if --mount option is set)
 [[ ! -d "${IPFS_MOUNTPATH}/ipfs" ]] && mkdir -p "${IPFS_MOUNTPATH}/ipfs"
@@ -65,20 +90,3 @@ chmod 755 /etc/init.d/ipfsd
 # echo 'Adding cronjob...'
 # cp ./ipfsd-cron /etc/cron.d
 
-which update-rc.d > /dev/null 2>&1
-if [ 0 -eq $? ]; then
-	update-rc.d ipfsd defaults
-	echo 'Success'
-	exit 0
-fi
-
-command -v /usr/sbin/chkconfig > /dev/null 2>&1
-if [ 0 -eq $? ]; then
-	/usr/sbin/chkconfig --add ipfsd
-	echo 'Success'
-	exit 0
-fi
-
-echo 'Unable to automatically generate rc.d files. Refer to your OS manual to enable the ipfsd service at boot time. (sorry)'
-echo 'Success'
-exit 0
