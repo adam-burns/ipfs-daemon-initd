@@ -11,13 +11,13 @@
 # Should-Stop:       $remote_fs $network $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Start/Stop IPFS Daemon
-# Description:       Starts or stops the IPFS Daemon with watchdogging
+# Short-Description: Start/Stop IPFS Cluster Daemon
+# Description:       Starts or stops the IPFS Cluster Daemon
 ### END INIT INFO
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-DESC="Interplanetary File System (IPFS)"
-NAME=ipfsd
+DESC="Interplanetary File System (IPFS) Cluster"
+NAME=ipfs-clusterd
 DAEMON=/usr/local/bin/ipfs-cluster-service
 DAEMON_NAME=ipfs-cluster-service
 PIDFILE=/var/run/$NAME.pid
