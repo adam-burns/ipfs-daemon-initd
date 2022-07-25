@@ -50,10 +50,14 @@ install_service() {
 	
 	[[ -n $(id -u $USER_NAME >/dev/null 2>&1) ]] && useradd -r -m -d $USER_HOME $USER_NAME
 	
+	# CLUSTER_SECRET, if unset then set with test value
+	# TODO handle secrets properly
+	[[ -z ${CLUSTER_SECRET+x} ]] && export CLUSTER_SECRET="9c7568c2e6c1b2dae221c19a723641397f82a839d1cf078dcbb79213d5b9a185"
+	
 	echo 'Initializing $1 ...'
 	chmod o+rx $SERVICE_BIN_PATH
 	[[ ! -d "${USER_HOME}/$3" ]] && sudo -u $USER_NAME $SERVICE_BIN_PATH init
-	
+
 	echo 'Adding init script...'
 	
 	cp ./$2 /etc/init.d
